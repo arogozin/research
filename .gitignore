@@ -1,3 +1,9 @@
+pdfs
+docs
+
+*.pdf
+*.txt
+
 *.py[cod]
 
 # C extensions
