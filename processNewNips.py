@@ -6,8 +6,7 @@ from bibtexparser.bparser import BibTexParser
 import simplejson as json
 from datetime import datetime
 import calendar
-import threading #!!!! must get rid of consecutive id conventions
-import re #for nips ids
+import re
 
 def prettyPrint(_obj):
 	print json.dumps(_obj, indent=4)
@@ -102,7 +101,7 @@ def processNIPS(_url):
 			a_id = re.sub("\D","",link.a.get('href').split('/')[2])
 			a_url = "http://papers.nips.cc" + link.a.get('href')
 			
-			if storedNIPS(a_id, authors) == False:
+			if not storedNIPS(a_id, authors):
 				auth = Author(a_id, a_url)
 				authors[authors_id] = auth.returnPerson()
 				authors_id += 1;
@@ -120,7 +119,7 @@ def processNIPS(_url):
 				e_id = re.sub("\D", "", contender.get('href').split('/')[2])
 				e_url = "http://papers.nips.cc" + contender.get('href')
 				
-				if storedNIPS(e_id, editors) == False: #why can't I use '!' !!!!
+				if not storedNIPS(e_id, editors):
 					ed = Editor(e_id, e_url)
 					editors[editors_id] = ed.returnPerson()
 					editors_id += 1;
