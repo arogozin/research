@@ -7,11 +7,12 @@ from bibtexparser.bparser import BibTexParser
 
 db = MySQLdb.connect(host = "db.arc.poly.edu", user = "research", passwd = "75*London*487", db = "research")
 c = db.cursor()
+'''
 c.execute("""CREATE TABLE IF NOT EXISTS publications (
 				id INT NOT NULL AUTO_INCREMENT,
 				created_at VARCHAR(100) NOT NULL,
 				updated_at VARCHAR(100) NOT NULL,
-				title VARCHAR(100) NOT NULL,
+				title VARCHAR(200) NOT NULL,
 				nips_id INT NOT NULL,
 				abstract TEXT,
 				pages VARCHAR(10) NOT NULL,
@@ -36,6 +37,7 @@ c.execute("""CREATE TABLE IF NOT EXISTS person_publication (
 				type VARCHAR(10),
 				PRIMARY KEY ( id )
 			)""")
+'''
 
 MAX_THREADS = 10
 
