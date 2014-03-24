@@ -194,7 +194,7 @@ def processAuthors():
 			db.commit()
 			
 		except Queue.Empty:
-			break;
+			break
 
 nips_url = "http://papers.nips.cc/book/advances-in-neural-information-processing-systems-26-2013"
 

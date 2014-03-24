@@ -15,10 +15,9 @@ index.save("genObjects/nips.index")
 
 index = similarities.MatrixSimilarity.load("genObjects/nips.index")
 
-#docname = "docs/NIPS2012_1283.txt"
-#print "Query on " + docname
-#doc = open(docname, 'r').read()
-doc = "Keypoint matching between pairs of images using popular descriptors like SIFT or a faster variant called SURF is at the heart of many computer vision algorithms including recognition, mosaicing, and structure from motion. However, SIFT and SURF do not perform well for real-time or mobile applications. As an alternative very fast binary descriptors like BRIEF and related methods use pairwise comparisons of pixel intensities in an image patch. We present an analysis of BRIEF and related approaches revealing that they are hashing schemes on the ordinal correlation metric Kendall’s tau. Here, we introduce Locally Uniform Comparison Image Descriptor (LUCID), a simple description method based on linear time permutation distances between the ordering of RGB values of two image patches. LUCID is computable in linear time with respect to the number of pixels and does not require ﬂoating point computation."
+docname = "docs/NIPS2012_1283.txt"
+print "Query on " + docname
+doc = open(docname, 'r').read()
 vec_bow = dictionary.doc2bow(doc.lower().split())
 vec_lda = lda[vec_bow]
 
@@ -26,6 +25,23 @@ sims = index[vec_lda]
 sims = sorted(enumerate(sims), key=lambda item: -item[1])
 print "Closest Match:"
 print sims[0]
+
+''' GET 2013 DOC TRAINING DONE FIRST
+for sim in sims:
+    pub_score = sim[1]
+    if pub_score >= SIM_THRESHOLD:
+        pub_id = sim[0] + 1 #account for start-at-0
+        c.execute("SELECT person_id FROM person_publication WHERE publication_id = %s AND type = 'Author'" %pub_id)
+        auth_ids = c.fetchall()
+        for auth_id in auth_ids:
+            if auth_id[0] in authors:
+                authors[auth_id[0]] = ((authors[auth_id[0]] + pub_score) / 2) #or add?
+            else:
+                authors[auth_id[0]] = pub_score
+
+for key,value in authors.items():
+	print str(key) + " === " + str(value)
+'''
 
 #VERIFICATION
 

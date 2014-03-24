@@ -19,7 +19,7 @@ print "Tokenizing"
 texts = [[word for word in document.lower().split() if word not in stoplist]
 			for document in documents]
 
-#remove words that only appear once -- this takes forever
+#remove words that only appear once
 print "Removing single-appearance words"
 all_tokens = sum(texts, [])
 tokens_once = set(word for word in set(all_tokens) if all_tokens.count(word) == 1)

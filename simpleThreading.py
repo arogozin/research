@@ -32,7 +32,7 @@ def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
 def fill():
 	print "FILLING ..."
 	increment_id = 1
-	for i in range(100):
+	for i in range(50):
 		id_1 = id_generator()
 		id_2 = id_generator(3)
 		queue.put([increment_id, id_1, id_2])
@@ -48,7 +48,7 @@ def process():
 			thing = Thing(info[0], info[1], info[2])
 			print "thing(%s,%s,%s)" % (info[0], info[1], info[2])
 		except Queue.Empty:
-			break;
+			break
 			
 	print "DONE"
 

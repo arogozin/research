@@ -14,8 +14,8 @@ def worker(work_queue, done_queue):
 
 def convert(filepath):
     print "Converting "+ filepath
-    textPath = 'docs/'+os.path.splitext(filepath)[0]+'.txt'
-    pdfPath = 'pdfs/'+filepath
+    textPath = 'docs2013/'+os.path.splitext(filepath)[0]+'.txt'
+    pdfPath = 'pdfs2013/'+filepath
     subprocess.call(["pdf2txt.py", "-o", textPath, pdfPath])
     return textPath
 
@@ -25,7 +25,7 @@ def main():
     done_queue = Queue()
     processes = []
 
-    for dirname, dirnames, filenames in os.walk('pdfs'):
+    for dirname, dirnames, filenames in os.walk('pdfs2013'):
         for filename in filenames:
             if filename.endswith('.pdf'):
                 print "Putting "+ filename +" into QUEUE."
