@@ -64,6 +64,9 @@ class WebPage(object):
     def getAuthorIdentifierFromLink(self, url):
         return str(re.findall(r"-[0-9]+", url)[0])[1:]
     
+    def getPublicationIdentifierFromLink(self, url):
+        return str(re.findall(r"[0-9]+-", url)[0])[:-1]
+    
     def getPublicationAbstract(self):
         return self.soup.find('p', {'class': 'abstract'}).get_text()
     
@@ -148,4 +151,4 @@ publicationPage = WebPage('http://papers.nips.cc/paper/4192-a-denoising-view-of-
 authors = publicationPage.getPublicationAuthors()
 abstract = publicationPage.getPublicationAbstract()
 
-print publicationPage.getAuthorIdentifierFromLink('http://papers.nips.cc/author/weiran-wang-4877')
+print publicationPage.getPublicationIdentifierFromLink('http://papers.nips.cc/paper/4192-a-denoising-view-of-matrix-completion')
