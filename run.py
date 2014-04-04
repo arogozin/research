@@ -53,6 +53,19 @@ class WebPage(object):
     def getPublicationTitle(self):
         return self.soup.find('h2', {'class': 'subtitle'}).get_text()
     
+    def getPublicationAuthors(self):
+        return [author.find('a').get_text() for author in self.soup.findAll('li', {'class': 'author'})]
+    
+    def normalizeList(self, inputList):
+        result = []
+        
+        for listItem in inputList:
+            item = listItem.encode('utf-8').decode('utf-8')
+            item = unicodedata.normalize('NFKD', item).encode('ascii', 'ignore')
+            item = re.sub(r'["|\'][a-zA-Z]+["|\']', '', item)
+            result.append(item)
+        return result
+    
 def getAuthorProfileUrl(name, splitName = None, url = None):
     searchBaseUrl = 'http://papers.nips.cc/search/?q='
     name = str(name).decode('utf-8')
@@ -122,4 +135,6 @@ def getAuthorProfileUrl(name, splitName = None, url = None):
 #reviewers = page.getReviewers()
 
 publicationPage = WebPage('http://papers.nips.cc/paper/4192-a-denoising-view-of-matrix-completion')
-print publicationPage.getPublicationTitle()
+authors = publicationPage.getPublicationAuthors()
+for author in authors:
+    print author.encode('utf-8')
