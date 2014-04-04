@@ -54,8 +54,16 @@ class WebPage(object):
         return self.soup.find('h2', {'class': 'subtitle'}).get_text()
     
     def getPublicationAuthors(self):
-        return [author.find('a').get_text() for author in self.soup.findAll('li', {'class': 'author'})]
-
+        result = []
+        tmp = [author.find('a').get_text() for author in self.soup.findAll('li', {'class': 'author'})]
+        for item in tmp:
+            author = {}
+            author['name'] = item
+            author['url'] = getAuthorProfileUrl(item)
+            
+    def getAuthorIdentifierFromLink(self, url):
+        return str(re.findall(r"-[0-9]+", url)[0])[1:]
+    
     def getPublicationAbstract(self):
         return self.soup.find('p', {'class': 'abstract'}).get_text()
     
@@ -71,7 +79,6 @@ class WebPage(object):
     
 def getAuthorProfileUrl(name, splitName = None, url = None):
     searchBaseUrl = 'http://papers.nips.cc/search/?q='
-    name = str(name).decode('utf-8')
     name = unicodedata.normalize('NFKD', name).encode('ascii', 'ignore')
     name = re.sub(r'["|\'][a-zA-Z]+["|\']', '', name)
     
@@ -141,4 +148,4 @@ publicationPage = WebPage('http://papers.nips.cc/paper/4192-a-denoising-view-of-
 authors = publicationPage.getPublicationAuthors()
 abstract = publicationPage.getPublicationAbstract()
 
-print abstract
+print publicationPage.getAuthorIdentifierFromLink('http://papers.nips.cc/author/weiran-wang-4877')
