@@ -7,6 +7,7 @@ from bs4 import BeautifulSoup
 import json
 from multiprocessing import Lock, Process, Queue, current_process
 import unicodedata
+import mysqlconn as db
 
 class WebPage(object):
     
@@ -151,4 +152,4 @@ publicationPage = WebPage('http://papers.nips.cc/paper/4192-a-denoising-view-of-
 authors = publicationPage.getPublicationAuthors()
 abstract = publicationPage.getPublicationAbstract()
 
-print publicationPage.getPublicationIdentifierFromLink('http://papers.nips.cc/paper/4192-a-denoising-view-of-matrix-completion')
+print db.cursor.execute("SELECT * FROM reviewers")
