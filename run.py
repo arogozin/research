@@ -50,6 +50,9 @@ class WebPage(object):
     def getSoup(self):
         return self.soup
     
+    def getPublicationTitle(self):
+        return self.soup.find('h2', {'class': 'subtitle'}).get_text()
+    
 def getAuthorProfileUrl(name, splitName = None, url = None):
     searchBaseUrl = 'http://papers.nips.cc/search/?q='
     name = str(name).decode('utf-8')
@@ -113,14 +116,10 @@ def getAuthorProfileUrl(name, splitName = None, url = None):
     else:
         return None
 
-print getAuthorProfileUrl('Miguel Carreira-Perpiñán')
+#print getAuthorProfileUrl('Miguel Carreira-Perpiñán')
 
-#print getAuthorProfileUrl(name, url)
+#page = WebPage('https://nips.cc/Conferences/2012/Committees')
+#reviewers = page.getReviewers()
 
-page = WebPage('https://nips.cc/Conferences/2012/Committees')
-reviewers = page.getReviewers()
-
-#for reviewer in iter(reviewers.get, 'STOP'):
-#    print reviewer
-#    print searchReviewerProfile(reviewer)
-#    print
+publicationPage = WebPage('http://papers.nips.cc/paper/4192-a-denoising-view-of-matrix-completion')
+print publicationPage.getPublicationTitle()
