@@ -3,9 +3,9 @@ research
 
 NYU Research
 
-[mysqlconn.py contents]
 
-#!/usr/bin/python
+
+##[mysqlconn.py contents]
 import MySQLdb
 
 hostname = ""
