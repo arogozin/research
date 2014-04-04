@@ -55,6 +55,9 @@ class WebPage(object):
     
     def getPublicationAuthors(self):
         return [author.find('a').get_text() for author in self.soup.findAll('li', {'class': 'author'})]
+
+    def getPublicationAbstract(self):
+        return self.soup.find('p', {'class': 'abstract'}).get_text()
     
     def normalizeList(self, inputList):
         result = []
@@ -136,5 +139,6 @@ def getAuthorProfileUrl(name, splitName = None, url = None):
 
 publicationPage = WebPage('http://papers.nips.cc/paper/4192-a-denoising-view-of-matrix-completion')
 authors = publicationPage.getPublicationAuthors()
-for author in authors:
-    print author.encode('utf-8')
+abstract = publicationPage.getPublicationAbstract()
+
+print abstract
