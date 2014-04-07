@@ -30,6 +30,10 @@ class WebPage(object):
             return response.read()
         else:
             return 'Error.'
+    
+    def getUrl(self):
+        return self.url
+    
 
     def getReviewers(self):
         reviewers = Queue()
@@ -68,12 +72,18 @@ class WebPage(object):
             
         return result
 
-    def getAuthorIdentifierFromLink(self, url):
-        return str(re.findall(r"-[0-9]+", url)[0])[1:]
+    def getAuthorIdentifierFromLink(self, url = None):
+        if url is None:
+            return str(re.findall(r"-[0-9]+", self.url)[0])[1:]
+        else:
+            return str(re.findall(r"-[0-9]+", url)[0])[1:]
     
 
-    def getPublicationIdentifierFromLink(self, url):
-        return str(re.findall(r"[0-9]+-", url)[0])[:-1]
+    def getPublicationIdentifierFromLink(self, url = None):
+        if url is None:
+            return str(re.findall(r"[0-9]+-", self.url)[0])[:-1]
+        else:
+            return str(re.findall(r"[0-9]+-", url)[0])[:-1]
     
 
     def getPublicationAbstract(self):
@@ -96,7 +106,6 @@ class WebPage(object):
 
     
 
-
     def getConferenceEditors(self):
         results = []
         
@@ -109,6 +118,11 @@ class WebPage(object):
         return results
         #return self.soup.find('h2', {'class': 'subtitle'}).findAllNext('a')
         
+
+    def getAuthorPublications(self):
+        return ['http://papers.nips.cc' + link.find('a').get('href') for link in self.soup.findAll('li', {'class': 'paper'})]
+    
+
 
 def getAuthorProfileUrl(name, splitName = None, url = None):
     searchBaseUrl = 'http://papers.nips.cc/search/?q='
@@ -182,13 +196,15 @@ class Publication(object):
     def __init__(self, page):
         self.page = page
     
-    def getPublication(self):
-        result = {}
-        result['title'] = self.page.getPublicationTitle()
-        
-        return result
+    def insertPublication(self):
+        db.cursor.execute("INSERT INTO publications (identifier, title, abstract) VALUES (%s, %s, %s)", (self.page.getPublicationIdentifierFromLink(), self.page.getPublicationTitle(), self.page.getPublicationAbstract()))
+        db.conn.commit()
     
 
-publication = Publication(WebPage('http://papers.nips.cc/paper/4874-inferring-neural-population-dynamics-from-multiple-partial-recordings-of-the-same-neural-circuit'))
+# publication = Publication(WebPage('http://papers.nips.cc/paper/4874-inferring-neural-population-dynamics-from-multiple-partial-recordings-of-the-same-neural-circuit'))
+# 
+# print publication.getPublication()
 
-print publication.getPublication()
+page = WebPage('http://papers.nips.cc/paper/5140-documents-as-multiple-overlapping-windows-into-grids-of-counts')
+pub = Publication(page)
+pub.insertPublication()
