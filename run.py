@@ -16,12 +16,13 @@ class WebPage(object):
     html = ''
     soup = ''
     result = ''
-    bibtex_raw = ''
+    bibtex = ''
     
     def __init__(self, url):
         self.url = url
         self.html = self.retrievePage(self.url).read()
         self.soup = self.parsePage(self.html)
+        self.bibtex = self.retrieveBibtex()
         
     def retrievePage(self, url):
         request = urllib2.Request(url)
@@ -41,6 +42,10 @@ class WebPage(object):
         
         return bibtex
         
+    
+    def getBibtex(self):
+        return self.bibtex
+    
     def getUrl(self):
         return self.url
     
@@ -133,6 +138,10 @@ class WebPage(object):
         return ['http://papers.nips.cc' + link.find('a').get('href') for link in self.soup.findAll('li', {'class': 'paper'})]
     
 
+    
+    def getPublicationPages(self):
+        return self.bibtex['pages']     #### fix this
+    
 
 def getAuthorProfileUrl(name, splitName = None, url = None):
     searchBaseUrl = 'http://papers.nips.cc/search/?q='
@@ -207,7 +216,7 @@ class Publication(object):
         self.page = page
     
     def insertPublication(self):
-        db.cursor.execute("INSERT INTO publications (identifier, title, abstract) VALUES (%s, %s, %s)", (self.page.getPublicationIdentifierFromLink(), self.page.getPublicationTitle(), self.page.getPublicationAbstract()))
+        db.cursor.execute("INSERT INTO publications (identifier, title, abstract, pages, year, booktitle) VALUES (%s, %s, %s, %s, %s, %s)", (self.page.getPublicationIdentifierFromLink(), self.page.getPublicationTitle(), self.page.getPublicationAbstract(), '''stuff here'''))
         db.conn.commit()
     
 
@@ -218,4 +227,4 @@ class Publication(object):
 page = WebPage('http://papers.nips.cc/paper/5140-documents-as-multiple-overlapping-windows-into-grids-of-counts')
 pub = Publication(page)
 #pub.insertPublication()
-print page.retrieveBibtex()
+print page.getPublicationPages()
