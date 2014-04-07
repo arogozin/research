@@ -109,6 +109,7 @@ class WebPage(object):
         return results
         #return self.soup.find('h2', {'class': 'subtitle'}).findAllNext('a')
         
+
 def getAuthorProfileUrl(name, splitName = None, url = None):
     searchBaseUrl = 'http://papers.nips.cc/search/?q='
     name = unicodedata.normalize('NFKD', name).encode('ascii', 'ignore')
@@ -174,11 +175,20 @@ def getAuthorProfileUrl(name, splitName = None, url = None):
         return None
 
 
-#print getAuthorProfileUrl('Miguel Carreira-Perpiñán')
+class Publication(object):
+    
+    page = ''
+    
+    def __init__(self, page):
+        self.page = page
+    
+    def getPublication(self):
+        result = {}
+        result['title'] = self.page.getPublicationTitle()
+        
+        return result
+    
 
-#page = WebPage('https://nips.cc/Conferences/2012/Committees')
-#reviewers = page.getReviewers()
+publication = Publication(WebPage('http://papers.nips.cc/paper/4874-inferring-neural-population-dynamics-from-multiple-partial-recordings-of-the-same-neural-circuit'))
 
-page = WebPage('http://papers.nips.cc/book/advances-in-neural-information-processing-systems-26-2013')
-
-print page.getConferenceEditors()
+print publication.getPublication()
