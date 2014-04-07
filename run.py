@@ -62,6 +62,10 @@ class WebPage(object):
             author['name'] = item
             author['url'] = getAuthorProfileUrl(item)
             
+            result.append(author)
+            
+        return result
+            
     def getAuthorIdentifierFromLink(self, url):
         return str(re.findall(r"-[0-9]+", url)[0])[1:]
     
@@ -99,6 +103,8 @@ def getAuthorProfileUrl(name, splitName = None, url = None):
         if soup.h4 is not None:
             if soup.h4.a is not None:
                 url = soup.h4.a.get('href')
+    
+    url = "http://papers.nips.cc" + url
     
     authorUrlName = '-'.join(splitName).replace(' ', '-').replace('.', '').encode('utf-8').decode('utf-8')
     authorUrlName = unicodedata.normalize('NFKD', authorUrlName).encode('ascii', 'ignore')
@@ -148,8 +154,8 @@ def getAuthorProfileUrl(name, splitName = None, url = None):
 #page = WebPage('https://nips.cc/Conferences/2012/Committees')
 #reviewers = page.getReviewers()
 
-publicationPage = WebPage('http://papers.nips.cc/paper/4192-a-denoising-view-of-matrix-completion')
+publicationPage = WebPage('http://papers.nips.cc/paper/5063-causal-inference-on-time-series-using-restricted-structural-equation-models')
 authors = publicationPage.getPublicationAuthors()
 abstract = publicationPage.getPublicationAbstract()
 
-print db.cursor.execute("SELECT * FROM reviewers")
+print authors
