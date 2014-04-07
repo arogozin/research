@@ -20,7 +20,7 @@ class WebPage(object):
     
     def __init__(self, url):
         self.url = url
-        self.html = self.retrievePage(self.url)
+        self.html = self.retrievePage(self.url).read()
         self.soup = self.parsePage(self.html)
         
     def retrievePage(self, url):
@@ -29,27 +29,17 @@ class WebPage(object):
         response = urllib2.urlopen(request)
         
         if (response.code == 200):
-            return response.read()
+            return response
         else:
             return 'Error.'
     
     def retrieveBibtex(self):
         bibtex_url = self.url + '/bibtex'
         self.bibtex_raw = self.retrievePage(bibtex_url)
+        bib = BibTexParser(self.bibtex_raw)
+        bibtex = bib.get_entry_list()
         
-'''
-bibtex = urllib2.urlopen(_url + "/bibtex").read()
-		texname = _url.split("/")[4][5:] + ".bib"
-		with open('bibtex/' + texname, 'w') as bibfile:
-			bibfile.write(bibtex)
-			
-		bibfile = open('bibtex/' + texname, 'r')
-		bp = BibTexParser(bibfile)
-		elist = bp.get_entry_list()
-		
-		self.publication["booktitle"] = elist[0]["booktitle"]
-
-'''
+        return bibtex
         
     def getUrl(self):
         return self.url
@@ -227,4 +217,5 @@ class Publication(object):
 
 page = WebPage('http://papers.nips.cc/paper/5140-documents-as-multiple-overlapping-windows-into-grids-of-counts')
 pub = Publication(page)
-pub.insertPublication()
+#pub.insertPublication()
+print page.retrieveBibtex()
