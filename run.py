@@ -8,6 +8,7 @@ import json
 from multiprocessing import Lock, Process, Queue, current_process
 import unicodedata
 import mysqlconn as db
+from bibtexparser.bparser import BibTexParser
 
 class WebPage(object):
     
@@ -15,6 +16,7 @@ class WebPage(object):
     html = ''
     soup = ''
     result = ''
+    bibtex_raw = ''
     
     def __init__(self, url):
         self.url = url
@@ -31,6 +33,24 @@ class WebPage(object):
         else:
             return 'Error.'
     
+    def retrieveBibtex(self):
+        bibtex_url = self.url + '/bibtex'
+        self.bibtex_raw = self.retrievePage(bibtex_url)
+        
+'''
+bibtex = urllib2.urlopen(_url + "/bibtex").read()
+		texname = _url.split("/")[4][5:] + ".bib"
+		with open('bibtex/' + texname, 'w') as bibfile:
+			bibfile.write(bibtex)
+			
+		bibfile = open('bibtex/' + texname, 'r')
+		bp = BibTexParser(bibfile)
+		elist = bp.get_entry_list()
+		
+		self.publication["booktitle"] = elist[0]["booktitle"]
+
+'''
+        
     def getUrl(self):
         return self.url
     
