@@ -51,9 +51,11 @@ class WebPage(object):
     def getSoup(self):
         return self.soup
     
+
     def getPublicationTitle(self):
         return self.soup.find('h2', {'class': 'subtitle'}).get_text()
     
+
     def getPublicationAuthors(self):
         result = []
         tmp = [author.find('a').get_text() for author in self.soup.findAll('li', {'class': 'author'})]
@@ -66,15 +68,19 @@ class WebPage(object):
             
         return result
             
+
     def getAuthorIdentifierFromLink(self, url):
         return str(re.findall(r"-[0-9]+", url)[0])[1:]
     
+
     def getPublicationIdentifierFromLink(self, url):
         return str(re.findall(r"[0-9]+-", url)[0])[:-1]
     
+
     def getPublicationAbstract(self):
         return self.soup.find('p', {'class': 'abstract'}).get_text()
     
+
     def normalizeList(self, inputList):
         result = []
         
@@ -85,6 +91,13 @@ class WebPage(object):
             result.append(item)
         return result
     
+
+    def getConferencePublications(self):
+        return ['http://papers.nips.cc' + link.find('a').get('href') for link in self.soup.findAll('ul')[1].findAll('li')]
+
+    
+
+
 def getAuthorProfileUrl(name, splitName = None, url = None):
     searchBaseUrl = 'http://papers.nips.cc/search/?q='
     name = unicodedata.normalize('NFKD', name).encode('ascii', 'ignore')
@@ -149,13 +162,12 @@ def getAuthorProfileUrl(name, splitName = None, url = None):
     else:
         return None
 
+
 #print getAuthorProfileUrl('Miguel Carreira-Perpiñán')
 
 #page = WebPage('https://nips.cc/Conferences/2012/Committees')
 #reviewers = page.getReviewers()
 
-publicationPage = WebPage('http://papers.nips.cc/paper/5063-causal-inference-on-time-series-using-restricted-structural-equation-models')
-authors = publicationPage.getPublicationAuthors()
-abstract = publicationPage.getPublicationAbstract()
+page = WebPage('http://papers.nips.cc/book/advances-in-neural-information-processing-systems-26-2013')
 
-print authors
+print page.getConferencePublications()
