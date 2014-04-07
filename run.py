@@ -67,7 +67,6 @@ class WebPage(object):
             result.append(author)
             
         return result
-            
 
     def getAuthorIdentifierFromLink(self, url):
         return str(re.findall(r"-[0-9]+", url)[0])[1:]
@@ -98,6 +97,18 @@ class WebPage(object):
     
 
 
+    def getConferenceEditors(self):
+        results = []
+        
+        for item in self.soup.find('br').findAllPrevious('a'):
+            if 'author' in item.get('href'):
+                author = {}
+                author['name'] = item.getText()
+                author['url'] = 'http://papers.nips.cc' + item.get('href')
+                results.append(author)
+        return results
+        #return self.soup.find('h2', {'class': 'subtitle'}).findAllNext('a')
+        
 def getAuthorProfileUrl(name, splitName = None, url = None):
     searchBaseUrl = 'http://papers.nips.cc/search/?q='
     name = unicodedata.normalize('NFKD', name).encode('ascii', 'ignore')
@@ -170,4 +181,4 @@ def getAuthorProfileUrl(name, splitName = None, url = None):
 
 page = WebPage('http://papers.nips.cc/book/advances-in-neural-information-processing-systems-26-2013')
 
-print page.getConferencePublications()
+print page.getConferenceEditors()
