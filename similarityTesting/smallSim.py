@@ -15,7 +15,7 @@ docs = c.fetchall()
 for doc in docs:
 	documents.append(doc[0])
 
-stoplist = [line.rstrip() for line in open('stopwords.txt')]
+stoplist = [line.rstrip() for line in open('/usr/share/research/old/stopwords.txt')]
 texts = [[word for word in document.lower().split() if word not in stoplist]
 			for document in documents]
 all_tokens = sum(texts, [])
