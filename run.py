@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import urllib2
 import re
+import time
 import codecs
 from bs4 import BeautifulSoup
 import json
@@ -16,13 +17,11 @@ class WebPage(object):
     html = ''
     soup = ''
     result = ''
-    bibtex = ''
     
     def __init__(self, url):
         self.url = url
         self.html = self.retrievePage(self.url).read()
         self.soup = self.parsePage(self.html)
-        self.bibtex = self.retrieveBibtex()
         
     def retrievePage(self, url):
         request = urllib2.Request(url)
@@ -33,23 +32,22 @@ class WebPage(object):
             return response
         else:
             return 'Error.'
-    
-    def retrieveBibtex(self):
-        bibtex_url = self.url + '/bibtex'
-        self.bibtex_raw = self.retrievePage(bibtex_url)
-        bib = BibTexParser(self.bibtex_raw)
-        bibtex = bib.get_entry_list()
-        
-        return bibtex[0]
-        
-    
-    def getBibtex(self):
-        return self.bibtex
-    
+
     def getUrl(self):
         return self.url
     
-
+    def getReviewersList(self):
+        result = []
+        tmp = self.soup.find('h1', {'class': 'PageTitle'}).findNext('h2').findNext('h2').findNext('p').getText().split("\n")
+        for item in tmp:
+            author = {}
+            split = item.split(' (')
+            author['name'] = split[0]
+            author['affiliation'] = split[1][:-1]
+            result.append(author)
+            
+        return result
+    
     def getReviewers(self):
         reviewers = Queue()
         [reviewers.put(item.split(' (')[0]) for item in self.soup.find_all('p')[-1].get_text().split('\n')]        
@@ -208,18 +206,31 @@ def getAuthorProfileUrl(name, splitName = None, url = None):
     else:
         return None
 
-
 class Publication(object):
     
     page = ''
+    url = ''
     bibtex = ''
     
     def __init__(self, page):
         self.page = page
-        self.bibtex = page.getBibtex()
+        self.url = page.getUrl()
+        self.bibtex = self.retrieveBibtex()
+    
+    def retrieveBibtex(self):
+        bibtex_url = self.url + '/bibtex'
+        self.bibtex_raw = page.retrievePage(bibtex_url)
+        bib = BibTexParser(self.bibtex_raw)
+        bibtex = bib.get_entry_list()
+        
+        return bibtex[0]
+        
+    def getBibtex(self):
+        return self.bibtex
     
     def insertPublication(self):
-        db.cursor.execute("INSERT INTO publications (identifier, title, abstract, pages, year, booktitle) VALUES (%s, %s, %s, %s, %s, %s)", (self.page.getPublicationIdentifierFromLink(), self.page.getPublicationTitle(), self.page.getPublicationAbstract(), self.bibtex['pages'], self.bibtex['year'], self.bibtex['booktitle']))
+        timestamp = str(time.strftime("%Y-%m-%d %H-%M-%S"))
+        db.cursor.execute("INSERT INTO publications (identifier, title, abstract, pages, year, booktitle, created_at, updated_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", (self.page.getPublicationIdentifierFromLink(), self.page.getPublicationTitle(), self.page.getPublicationAbstract(), self.bibtex['pages'], self.bibtex['year'], self.bibtex['booktitle'], timestamp, timestamp))
         db.conn.commit()
     
 
@@ -227,7 +238,9 @@ class Publication(object):
 # 
 # print publication.getPublication()
 
-page = WebPage('http://papers.nips.cc/paper/5140-documents-as-multiple-overlapping-windows-into-grids-of-counts')
-pub = Publication(page)
-pub.insertPublication()
-print page.getPublicationPages()
+#page = WebPage('http://papers.nips.cc/paper/5140-documents-as-multiple-overlapping-windows-into-grids-of-counts')
+#pub = Publication(page)
+#pub.insertPublication()
+
+page = WebPage('http://nips.cc/Conferences/2013/Committees')
+print page.getReviewersList()
