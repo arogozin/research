@@ -40,7 +40,7 @@ class WebPage(object):
         bib = BibTexParser(self.bibtex_raw)
         bibtex = bib.get_entry_list()
         
-        return bibtex
+        return bibtex[0]
         
     
     def getBibtex(self):
@@ -137,10 +137,11 @@ class WebPage(object):
     def getAuthorPublications(self):
         return ['http://papers.nips.cc' + link.find('a').get('href') for link in self.soup.findAll('li', {'class': 'paper'})]
     
-
+    def getBibtex(self):
+        return self.bibtex
     
     def getPublicationPages(self):
-        return self.bibtex['pages']     #### fix this
+        return self.bibtex['pages']
     
 
 def getAuthorProfileUrl(name, splitName = None, url = None):
@@ -211,12 +212,14 @@ def getAuthorProfileUrl(name, splitName = None, url = None):
 class Publication(object):
     
     page = ''
+    bibtex = ''
     
     def __init__(self, page):
         self.page = page
+        self.bibtex = page.getBibtex()
     
     def insertPublication(self):
-        db.cursor.execute("INSERT INTO publications (identifier, title, abstract, pages, year, booktitle) VALUES (%s, %s, %s, %s, %s, %s)", (self.page.getPublicationIdentifierFromLink(), self.page.getPublicationTitle(), self.page.getPublicationAbstract(), '''stuff here'''))
+        db.cursor.execute("INSERT INTO publications (identifier, title, abstract, pages, year, booktitle) VALUES (%s, %s, %s, %s, %s, %s)", (self.page.getPublicationIdentifierFromLink(), self.page.getPublicationTitle(), self.page.getPublicationAbstract(), self.bibtex['pages'], self.bibtex['year'], self.bibtex['booktitle']))
         db.conn.commit()
     
 
@@ -226,5 +229,5 @@ class Publication(object):
 
 page = WebPage('http://papers.nips.cc/paper/5140-documents-as-multiple-overlapping-windows-into-grids-of-counts')
 pub = Publication(page)
-#pub.insertPublication()
+pub.insertPublication()
 print page.getPublicationPages()
