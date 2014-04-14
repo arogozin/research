@@ -10,7 +10,7 @@ c = db.cursor()
 
 #PREPARE DOCUMENTS CORPUS
 documents = []
-c.execute("SELECT abstract FROM publications LIMIT 10")
+c.execute("SELECT abstract FROM publications LIMIT 20")
 docs = c.fetchall()
 for doc in docs:
 	documents.append(doc[0])
@@ -54,4 +54,4 @@ vec_lda = lda[mmQ] #or corpusQ works the same way
 #SIM TEST
 for sims in index[vec_lda]:
 	sims = sorted(enumerate(sims), key=lambda item: -item[1])
-	print sims
+	print sims[:10]
