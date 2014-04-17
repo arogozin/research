@@ -77,7 +77,7 @@ class YQL(object):
 		else:
 			return 'Error.'
 
-class Reviewer(object):
+class Reviewer(object): #inherit from person?
 	
 	name = ''
 	url = ''
@@ -130,6 +130,7 @@ class Reviewer(object):
 		
 		for publication in publications:
 			publication.insert()
+			publication.insertAuthors() # to take care of pivoting?
 
 #rather than having everything in webpage
 class Publication(object):
@@ -179,15 +180,20 @@ class Publication(object):
 		
 	def insert(self):
 		#temporary printing
-		print self.identifier
-		print self.title
-		print self.abstract
-		print self.pages
-		print self.year
-		print self.booktitle 
+		print "%s\n%s\n%s\n%s\n%s\n%s\n" %(self.identifier, self.title, self.abstract, self.pages, self.year, self.booktitle)
 		'''timestamp = str(time.strftime("%Y-%m-%d %H-%M-%S"))
 		db.cursor.execute("INSERT INTO publications (identifier, title, abstract, pages, year, booktitle, created_at, updated_at) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", self.idenifier, self.title, self.abstract, self.pages, self.year, self.booktitle, timestamp, timestamp))
 		db.conn.commit()'''
+		
+	def insertAuthors(self):
+		tmp = [author.find('a') for author in self.soup.findAll('ul')[1].findAll('li')]
+		for a in tmp:
+			author = {}
+			author['name'] = a.get_text()
+			author['url'] = "http://papers.nips.cc/author/" + a.get('href')
+			print author
+		#check if in people
+		#author.insert()
 
 def getPublicationsFromAuthorPage(page):
 	publications = []
@@ -200,7 +206,32 @@ def getPublicationsFromAuthorPage(page):
 		publications.append(pub)
 	
 	return publications
-	
-reviewer = Reviewer('Jacob Abernethy')#('Jennifer Wortman Vaughan')
-reviewer.insertPublications()
+
+def getReviewersFromCommitteePage(page):
+	reviewers = [] #change to Queue() later (for multiprocessing / multithreading)
+	tmp = page.getSoup().find('h1', {'class': 'PageTitle'}).findNext('h2').findNext('h2').findNext('p').getText().split("\n")
+	for item in tmp:
+		author = {}
+		split = item.split(' (')
+		author['name'] = split[0]
+		author['affiliation'] = split[1][:-1]
+		reviewers.append(author)
+	return reviewers
+
+pub = Publication(WebPage("http://papers.nips.cc/paper/5138-the-randomized-dependence-coefficient"))
+pub.insertAuthors()
+
+#yql = YQL("http://nips.cc/Conferences/2013/Committees", '/html/body/div/div/div/div/div/p')
+#json = yql.json
+#print json['results']['p'][3]
+'''
+reviewers = getReviewersFromCommitteePage(WebPage("http://nips.cc/Conferences/2013/Committees"))
+
+for rev in reviewers:
+	reviewer = Reviewer(rev['name'])
+	reviewer.insertPublications()
+'''
+#reviewer = Reviewer('Jacob Abernethy')#('Jennifer Wortman Vaughan')
+#reviewer.insertPublications()
+
 #print reviewer.find()
