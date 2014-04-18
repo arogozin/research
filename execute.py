@@ -6,7 +6,6 @@ import json
 import re
 import time
 import Queue
-import threading
 import unicodedata
 import MySQLdb
 from bs4 import BeautifulSoup
@@ -77,15 +76,16 @@ class Person(object):
 		self.soup = _page.soup
 		self.name = self.retrieveName()
 		self.identifier = self.retrieveIdentifier()
-		self.publications = self.retrievePublications()
+		self.affiliation = _affiliation
 	
 	def retrieveName(self):
 		return self.soup.find('h2', {'class': 'subtitle'}).getText()
 
 	def retrieveIdentifier(self):
-		return str(re.findall(r"-[0-9]+", self.url)[0])[:-1]
+		return str(re.sub("\D", "", self.url)) #str(re.findall(r"[0-9]+", self.url)[0])[:-1]
 	
 	def retrievePublications(self):
+		print "RETRIEVING: " + self.name + " publications"
 		publications = Queue.Queue()
 		for li in self.soup.findAll('li')[1:]:
 			url = BASE_URL + li.a.get('href')
@@ -95,7 +95,43 @@ class Person(object):
 		return publications
 		
 	def insert(self):
-		pass
+		C.execute("SELECT * FROM people WHERE identifier = %s" %(self.identifier))
+		record = C.fetchone()
+		
+		if not record:
+			timestamp = time.strftime("%Y-%m-%d %H-%M-%S")
+			C.execute("INSERT INTO people (created_at, updated_at, name, identifier) VALUES (%s, %s, %s, %s)", (timestamp, timestamp, name, identifier))
+			DB.commit()
+			
+	def insertAndPivot(self, _type):
+		C.execute("SELECT * FROM people WHERE identifier = %s" %(self.identifier))
+		record = C.fetchone()
+		
+		if not record:
+			print "INSERTING: " + self.name + " to database"
+			timestamp = time.strftime("%Y-%m-%d %H-%M-%S")
+			C.execute("INSERT INTO people (created_at, updated_at, name, identifier) VALUES (%s, %s, %s, %s)", (timestamp, timestamp, self.name, self.identifier))
+			DB.commit()
+			
+			publications = self.retrievePublications()
+			
+			while not publications.empty():
+				publication = publications.get()
+				publication.insert()
+				
+				C.execute("SELECT id FROM publications WHERE identifier = %s" %(publication.identifier))
+				publication_id = C.fetchone()
+				C.execute("SELECT id FROM people WHERE identifier = %s" %(self.identifier))
+				person_id = C.fetchone()
+				
+				C.execute("SELECT * FROM person_publication WHERE person_id = %s AND publication_id = %s", (person_id, publication_id))
+				record = C.fetchone()
+				
+				if not record:
+					print "INSERTING PIVOT: " + self.name + " <-> " + publication.title
+					timestamp = time.strftime("%Y-%m-%d %H-%M-%S")
+					C.execute("INSERT INTO person_publication (created_at, updated_at, person_id, publication_id, type) VALUES (%s, %s, %s, %s, %s)", (timestamp, timestamp, person_id, publication_id, _type))
+					DB.commit()
 	
 
 class Publication(object):
@@ -112,7 +148,6 @@ class Publication(object):
 		self.pages = self.bibtex['pages']
 		self.year = self.bibtex['year']
 		self.booktitle = self.bibtex['booktitle']
-		self.authors = self.retrieveAuthors()
 		
 	def retrieveBibtex(self):
 		bibtex_url = self.url + '/bibtex'
@@ -129,15 +164,25 @@ class Publication(object):
 		return str(re.findall(r"[0-9]+-", self.url)[0])[:-1]
 		
 	def retrieveAbstract(self):
-		return self.soup.find('p', {'class': 'abstract'}).getText()
+		return self.soup.find('p', {'class': 'abstract'}).getText().encode('utf-8')
 		
 	def retrieveAuthors(self):
 		pass
 	
 	def insert(self):
+		C.execute("SELECT * FROM publications WHERE identifier = %s" %(self.identifier))
+		record = C.fetchone()
+		
+		if not record:
+			print "INSERTING: " + self.title
+			timestamp = time.strftime("%Y-%m-%d %H-%M-%S")
+			C.execute("INSERT INTO publications (created_at, updated_at, title, identifier, abstract, pages, year, booktitle) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", (timestamp, timestamp, self.title, self.identifier, self.abstract, self.pages, self.year, self.booktitle))
+			DB.commit()
+	
+	def insertAndPivot(self):
 		pass
-	
-	
+
+
 def getReviewersFromCommitteePage(page):
 	reviewers = Queue.Queue()
 	tmp = page.soup.find('h1', {'class': 'PageTitle'}).findNext('h2').findNext('h2').findNext('p').getText().split("\n")
@@ -152,7 +197,6 @@ def getReviewersFromCommitteePage(page):
 	
 	
 def findAuthorUrl(name, splitName = None):
-	print name
 	searchUrl = 'http://papers.nips.cc/search/?q='
 	if splitName is None:
 		name = unicodedata.normalize('NFKD', unicode(name)).encode('ascii', 'ignore')
@@ -185,25 +229,31 @@ def findAuthorUrl(name, splitName = None):
 		return findAuthorUrl(name, [splitName[0], splitName[1]])
 
 	maxVal = matches[0]['iVal']
-	for match in matches:
-		if match['iVal'] >= maxVal:
-			result = match['url']
-			maxVal = match['iVal']
+	for i in range(len(matches) - 1,-1,-1): #match in matches: #go backwards since first url found is most accurate
+		if matches[i]['iVal'] >= maxVal:
+			result = matches[i]['url']
+			maxVal = matches[i]['iVal']
 			
 	return result
-			
-def processReviewer(url, affiliation):
-	reviewer = Person(WebPage(url), affiliation)
-	while not reviewer.publications.empty():
-		pub = reviewer.publications.get();
-		pub.insert()
-	
-	
-#NIPS2013 = Book(WebPage("http://papers.nips.cc/book/advances-in-neural-information-processing-systems-26-2013"))
-#pub = NIPS2013.publications.get()
-#print pub.title
 
-reviewers = getReviewersFromCommitteePage(WebPage("http://nips.cc/Conferences/2013/Committees"))
 
-while not reviewers.empty():
-	print findAuthorUrl(reviewers.get()['name'])
+def processReviewer(reviewer):
+	person = Person(WebPage(findAuthorUrl(reviewer['name'])), reviewer['affiliation'])
+	print person.name + " (" + person.affiliation + ")"
+	person.insertAndPivot("Reviewer")
+
+
+def main():
+	reviewers = getReviewersFromCommitteePage(WebPage("http://nips.cc/Conferences/2013/Committees"))
+	
+	while not reviewers.empty():
+		reviewer = reviewers.get()
+		processReviewer(reviewer)
+
+	#tackle nips book next
+	#NIPS2013 = Book(WebPage("http://papers.nips.cc/book/advances-in-neural-information-processing-systems-26-2013"))
+	#pub = NIPS2013.publications.get()
+	#print pub.title
+
+if __name__ == "__main__":
+	main()
